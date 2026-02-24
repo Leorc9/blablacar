@@ -1,22 +1,22 @@
 <template>
   <div id="app">
-    <h1>BlaBlaCar Clone</h1>
-    <p>Application en cours de développement...</p>
+    <NavBar />
+    <main class="main-content">
+      <router-view />
+    </main>
   </div>
 </template>
 
 <script setup>
-// Configuration de base
+import NavBar from '@/components/NavBar.vue'
 </script>
 
-<style scoped>
+<style>
 #app {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  margin-top: 60px;
+  min-height: 100vh;
 }
 
-h1 {
-  color: #00aff5;
+.main-content {
+  padding: 20px;
 }
 </style>

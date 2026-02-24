@@ -7,32 +7,15 @@
       
       <div class="navbar-menu">
         <router-link to="/" class="navbar-link">Accueil</router-link>
-        
-        <template v-if="userStore.currentUser">
-          <span class="user-name">{{ userStore.currentUser.name }}</span>
-          <button @click="handleLogout" class="btn-logout">Déconnexion</button>
-        </template>
-        
-        <template v-else>
-          <router-link to="/login" class="navbar-link">Connexion</router-link>
-          <router-link to="/register" class="navbar-link">Inscription</router-link>
-        </template>
+        <router-link to="/login" class="navbar-link">Connexion</router-link>
+        <router-link to="/register" class="navbar-link">Inscription</router-link>
       </div>
     </div>
   </nav>
 </template>
 
 <script setup>
-import { useUserStore } from '@/stores/user'
-import { useRouter } from 'vue-router'
-
-const userStore = useUserStore()
-const router = useRouter()
-
-const handleLogout = async () => {
-  await userStore.logout()
-  router.push('/login')
-}
+// NavBar basique
 </script>
 
 <style scoped>
@@ -61,7 +44,6 @@ const handleLogout = async () => {
 .navbar-menu {
   display: flex;
   gap: 20px;
-  align-items: center;
 }
 
 .navbar-link {
@@ -77,26 +59,6 @@ const handleLogout = async () => {
 }
 
 .navbar-link.router-link-active {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.user-name {
-  color: white;
-  font-weight: 500;
-}
-
-.btn-logout {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s;
-}
-
-.btn-logout:hover {
   background-color: rgba(255, 255, 255, 0.3);
 }
 </style>
