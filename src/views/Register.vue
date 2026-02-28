@@ -3,6 +3,10 @@
     <div class="register-container">
       <h1>Inscription</h1>
       
+      <div v-if="userStore.error" class="error-message">
+        {{ userStore.error }}
+      </div>
+
       <form @submit.prevent="handleRegister" class="register-form">
         <div class="form-group">
           <label for="name">Nom complet</label>
@@ -49,8 +53,8 @@
           />
         </div>
 
-        <button type="submit" class="btn-primary">
-          S'inscrire
+        <button type="submit" class="btn-primary" :disabled="userStore.loading">
+          {{ userStore.loading ? 'Inscription...' : "S'inscrire" }}
         </button>
       </form>
 
@@ -65,8 +69,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 const name = ref('')
 const email = ref('')
 const password = ref('')
@@ -77,9 +83,13 @@ const handleRegister = async () => {
     alert('Les mots de passe ne correspondent pas')
     return
   }
-  console.log('Register attempt:', email.value)
-  // La logique Firebase sera ajoutée plus tard
-  alert('Fonctionnalité en développement')
+  
+  try {
+    await userStore.register(email.value, password.value, name.value)
+    router.push('/')
+  } catch (err) {
+    console.error('Register error:', err)
+  }
 }
 </script>
 
@@ -104,6 +114,15 @@ const handleRegister = async () => {
 h1 {
   color: #00aff5;
   margin-bottom: 30px;
+  text-align: center;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
   text-align: center;
 }
 
@@ -148,8 +167,13 @@ input:focus {
   transition: background-color 0.3s;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background-color: #0099dd;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .login-link {

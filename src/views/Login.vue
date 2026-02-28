@@ -3,6 +3,10 @@
     <div class="login-container">
       <h1>Connexion</h1>
       
+      <div v-if="userStore.error" class="error-message">
+        {{ userStore.error }}
+      </div>
+
       <form @submit.prevent="handleLogin" class="login-form">
         <div class="form-group">
           <label for="email">Email</label>
@@ -26,8 +30,8 @@
           />
         </div>
 
-        <button type="submit" class="btn-primary">
-          Se connecter
+        <button type="submit" class="btn-primary" :disabled="userStore.loading">
+          {{ userStore.loading ? 'Connexion...' : 'Se connecter' }}
         </button>
       </form>
 
@@ -42,15 +46,20 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 const email = ref('')
 const password = ref('')
 
 const handleLogin = async () => {
-  console.log('Login attempt:', email.value)
-  // La logique Firebase sera ajoutée plus tard
-  alert('Fonctionnalité en développement')
+  try {
+    await userStore.login(email.value, password.value)
+    router.push('/')
+  } catch (err) {
+    console.error('Login error:', err)
+  }
 }
 </script>
 
@@ -75,6 +84,15 @@ const handleLogin = async () => {
 h1 {
   color: #00aff5;
   margin-bottom: 30px;
+  text-align: center;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
   text-align: center;
 }
 
@@ -119,8 +137,13 @@ input:focus {
   transition: background-color 0.3s;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background-color: #0099dd;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .register-link {

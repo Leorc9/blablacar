@@ -17,17 +17,17 @@
 
     <div class="features">
       <div class="feature-card">
-        <h3>🚗 Trouvez un trajet</h3>
+        <h3>Trouvez un trajet</h3>
         <p>Des milliers de trajets disponibles chaque jour</p>
       </div>
       
       <div class="feature-card">
-        <h3>💰 Économisez</h3>
+        <h3>Économisez</h3>
         <p>Partagez les frais de route avec d'autres voyageurs</p>
       </div>
       
       <div class="feature-card">
-        <h3>🌍 Écologique</h3>
+        <h3>Écologique</h3>
         <p>Réduisez votre empreinte carbone</p>
       </div>
     </div>
