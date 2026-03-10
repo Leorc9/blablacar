@@ -5,15 +5,17 @@ import {
   collection, 
   addDoc, 
   getDocs, 
+  getDoc,
+  doc,
   query, 
   where,
   orderBy,
-  deleteDoc,
-  doc
+  deleteDoc
 } from 'firebase/firestore'
 
 export const useRidesStore = defineStore('rides', () => {
   const rides = ref([])
+  const currentRide = ref(null)
   const loading = ref(false)
   const error = ref(null)
 
@@ -49,6 +51,31 @@ export const useRidesStore = defineStore('rides', () => {
         id: doc.id,
         ...doc.data()
       }))
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Get ride by ID
+  const getRideById = async (rideId) => {
+    loading.value = true
+    error.value = null
+    try {
+      const docRef = doc(db, 'rides', rideId)
+      const docSnap = await getDoc(docRef)
+      
+      if (docSnap.exists()) {
+        currentRide.value = {
+          id: docSnap.id,
+          ...docSnap.data()
+        }
+        return currentRide.value
+      } else {
+        throw new Error('Ride not found')
+      }
     } catch (err) {
       error.value = err.message
       throw err
@@ -101,10 +128,12 @@ export const useRidesStore = defineStore('rides', () => {
 
   return {
     rides,
+    currentRide,
     loading,
     error,
     createRide,
     fetchRides,
+    getRideById,
     searchRides,
     deleteRide
   }
