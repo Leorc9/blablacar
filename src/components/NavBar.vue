@@ -7,6 +7,7 @@
       
       <div class="navbar-menu">
         <router-link to="/" class="navbar-link">Accueil</router-link>
+        <router-link to="/search-rides" class="navbar-link">Rechercher</router-link>
         
         <template v-if="userStore.currentUser">
           <router-link to="/create-ride" class="navbar-link">Publier un trajet</router-link>

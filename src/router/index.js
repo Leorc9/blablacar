@@ -20,6 +20,11 @@ const routes = [
     path: '/create-ride',
     name: 'create-ride',
     component: () => import('@/views/CreateRide.vue')
+  },
+  {
+    path: '/search-rides',
+    name: 'search-rides',
+    component: () => import('@/views/SearchRides.vue')
   }
 ]
 
