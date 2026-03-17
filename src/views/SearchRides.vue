@@ -27,26 +27,39 @@
         </div>
 
         <button type="submit" class="btn-primary" :disabled="ridesStore.loading">
-          {{ ridesStore.loading ? 'Recherche...' : 'Rechercher' }}
+          🔍 {{ ridesStore.loading ? 'Recherche...' : 'Rechercher' }}
         </button>
       </form>
+
+      <div class="search-tips">
+        <p>Astuce : Laissez un champ vide pour voir tous les trajets disponibles</p>
+      </div>
     </div>
 
     <div v-if="ridesStore.loading" class="loading">
       <LoadingSpinner message="Recherche en cours..." />
     </div>
 
-    <div v-else-if="ridesStore.rides.length === 0" class="no-results">
-      <p>Aucun trajet trouvé. Essayez une autre recherche.</p>
+    <div v-else-if="ridesStore.rides.length === 0 && searched" class="no-results">
+      <div class="no-results-icon"></div>
+      <p>Aucun trajet trouvé pour cette recherche.</p>
+      <p class="suggestion">Essayez d'élargir votre recherche ou vérifiez l'orthographe des villes.</p>
     </div>
 
-    <div v-else class="rides-list">
-      <h2>{{ ridesStore.rides.length }} trajet(s) trouvé(s)</h2>
+    <div v-else-if="ridesStore.rides.length > 0" class="rides-list">
+      <div class="results-header">
+        <h2>{{ ridesStore.rides.length }} trajet(s) trouvé(s)</h2>
+        <p>Sélectionnez un trajet pour voir les détails</p>
+      </div>
       <RideCard 
         v-for="ride in ridesStore.rides" 
         :key="ride.id" 
         :ride="ride"
-      />
+      >
+        <template #actions>
+          <button class="btn-details">Voir les détails</button>
+        </template>
+      </RideCard>
     </div>
   </div>
 </template>
@@ -58,6 +71,7 @@ import RideCard from '@/components/RideCard.vue'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const ridesStore = useRidesStore()
+const searched = ref(false)
 
 const searchForm = ref({
   from: '',
@@ -65,6 +79,7 @@ const searchForm = ref({
 })
 
 const handleSearch = async () => {
+  searched.value = true
   if (searchForm.value.from || searchForm.value.to) {
     await ridesStore.searchRides(searchForm.value.from, searchForm.value.to)
   } else {
@@ -74,6 +89,7 @@ const handleSearch = async () => {
 
 onMounted(() => {
   ridesStore.fetchRides()
+  searched.value = true
 })
 </script>
 
@@ -85,17 +101,19 @@ onMounted(() => {
 }
 
 .search-container {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #00aff5 0%, #0099dd 100%);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 175, 245, 0.2);
   margin-bottom: 40px;
+  color: white;
 }
 
 h1 {
-  color: #00aff5;
+  color: white;
   margin-bottom: 30px;
   text-align: center;
+  font-size: 2rem;
 }
 
 .search-form {
@@ -117,41 +135,56 @@ h1 {
 }
 
 label {
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: white;
+  font-size: 1.1rem;
 }
 
 input {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
   font-size: 16px;
+  background: rgba(255, 255, 255, 0.95);
 }
 
 input:focus {
   outline: none;
-  border-color: #00aff5;
+  border-color: white;
+  background: white;
 }
 
 .btn-primary {
-  background-color: #00aff5;
-  color: white;
-  padding: 14px;
+  background-color: white;
+  color: #00aff5;
+  padding: 16px;
   border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #0099dd;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: not-allowed;
+}
+
+.search-tips {
+  margin-top: 20px;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.search-tips p {
+  font-size: 0.95rem;
 }
 
 .loading {
@@ -161,15 +194,26 @@ input:focus {
 
 .no-results {
   text-align: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+.no-results-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
 .no-results p {
+  color: #333;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.suggestion {
   color: #666;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .rides-list {
@@ -178,14 +222,48 @@ input:focus {
   gap: 20px;
 }
 
-.rides-list h2 {
-  color: #333;
+.results-header {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   margin-bottom: 10px;
+}
+
+.results-header h2 {
+  color: #00aff5;
+  margin-bottom: 5px;
+  font-size: 1.5rem;
+}
+
+.results-header p {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.btn-details {
+  background-color: #00aff5;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+  margin-top: 12px;
+}
+
+.btn-details:hover {
+  background-color: #0099dd;
 }
 
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
   }
 }
 </style>
