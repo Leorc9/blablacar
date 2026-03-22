@@ -28,17 +28,17 @@
 
       <div class="ride-info-grid">
         <div class="info-card">
-          <strong>Date</strong>
+          <strong>📅 Date</strong>
           <p>{{ formatDate(ride.date) }}</p>
         </div>
 
         <div class="info-card">
-          <strong>Heure</strong>
+          <strong>🕐 Heure</strong>
           <p>{{ ride.time }}</p>
         </div>
 
         <div class="info-card">
-          <strong>Places</strong>
+          <strong>👥 Places</strong>
           <p>{{ ride.seats }} disponibles</p>
         </div>
       </div>
@@ -54,7 +54,13 @@
       </div>
 
       <div class="actions">
-        <button class="btn-book">Réserver ce trajet</button>
+        <button 
+          @click="handleBooking" 
+          class="btn-book"
+          :disabled="ride.seats === 0 || bookingInProgress"
+        >
+          {{ bookingInProgress ? 'Réservation...' : ride.seats === 0 ? 'Complet' : 'Réserver ce trajet' }}
+        </button>
         <button @click="goBack" class="btn-secondary">Retour</button>
       </div>
     </div>
@@ -69,12 +75,15 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useRidesStore } from '@/stores/rides'
+import { useUserStore } from '@/stores/user'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const route = useRoute()
 const router = useRouter()
 const ridesStore = useRidesStore()
+const userStore = useUserStore()
 const ride = ref(null)
+const bookingInProgress = ref(false)
 
 const formatDate = (dateString) => {
   const date = new Date(dateString)
@@ -84,6 +93,32 @@ const formatDate = (dateString) => {
     month: 'long',
     day: 'numeric'
   })
+}
+
+const handleBooking = async () => {
+  if (!userStore.currentUser) {
+    alert('Vous devez être connecté pour réserver')
+    router.push('/login')
+    return
+  }
+
+  if (ride.value.seats === 0) {
+    alert('Ce trajet est complet')
+    return
+  }
+
+  bookingInProgress.value = true
+  try {
+    await ridesStore.bookRide(ride.value.id, userStore.currentUser.uid)
+    alert('Réservation confirmée !')
+    // Refresh ride data
+    ride.value = await ridesStore.getRideById(ride.value.id)
+  } catch (err) {
+    console.error('Booking error:', err)
+    alert('Erreur lors de la réservation')
+  } finally {
+    bookingInProgress.value = false
+  }
 }
 
 const goBack = () => {
@@ -257,9 +292,15 @@ h1 {
   transition: all 0.3s;
 }
 
-.btn-book:hover {
+.btn-book:hover:not(:disabled) {
   background-color: #0099dd;
   transform: translateY(-2px);
+}
+
+.btn-book:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-secondary {

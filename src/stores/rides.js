@@ -10,7 +10,9 @@ import {
   query, 
   where,
   orderBy,
-  deleteDoc
+  deleteDoc,
+  updateDoc,
+  increment
 } from 'firebase/firestore'
 
 export const useRidesStore = defineStore('rides', () => {
@@ -111,6 +113,28 @@ export const useRidesStore = defineStore('rides', () => {
     }
   }
 
+  // Book a ride
+  const bookRide = async (rideId, userId) => {
+    loading.value = true
+    error.value = null
+    try {
+      const rideRef = doc(db, 'rides', rideId)
+      await updateDoc(rideRef, {
+        seats: increment(-1)
+      })
+      
+      // Refresh current ride
+      if (currentRide.value && currentRide.value.id === rideId) {
+        currentRide.value.seats -= 1
+      }
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Delete ride
   const deleteRide = async (rideId) => {
     loading.value = true
@@ -135,6 +159,7 @@ export const useRidesStore = defineStore('rides', () => {
     fetchRides,
     getRideById,
     searchRides,
+    bookRide,
     deleteRide
   }
 })

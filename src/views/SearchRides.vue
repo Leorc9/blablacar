@@ -6,7 +6,7 @@
       <form @submit.prevent="handleSearch" class="search-form">
         <div class="form-row">
           <div class="form-group">
-            <label for="from">Départ</label>
+            <label for="from">🚩 Départ</label>
             <input 
               type="text" 
               id="from" 
@@ -16,7 +16,7 @@
           </div>
 
           <div class="form-group">
-            <label for="to">Arrivée</label>
+            <label for="to">📍 Arrivée</label>
             <input 
               type="text" 
               id="to" 
@@ -32,7 +32,7 @@
       </form>
 
       <div class="search-tips">
-        <p>Astuce : Laissez un champ vide pour voir tous les trajets disponibles</p>
+        <p>💡 Astuce : Laissez un champ vide pour voir tous les trajets disponibles</p>
       </div>
     </div>
 
@@ -41,14 +41,14 @@
     </div>
 
     <div v-else-if="ridesStore.rides.length === 0 && searched" class="no-results">
-      <div class="no-results-icon"></div>
+      <div class="no-results-icon">😕</div>
       <p>Aucun trajet trouvé pour cette recherche.</p>
       <p class="suggestion">Essayez d'élargir votre recherche ou vérifiez l'orthographe des villes.</p>
     </div>
 
     <div v-else-if="ridesStore.rides.length > 0" class="rides-list">
       <div class="results-header">
-        <h2>{{ ridesStore.rides.length }} trajet(s) trouvé(s)</h2>
+        <h2>✨ {{ ridesStore.rides.length }} trajet(s) trouvé(s)</h2>
         <p>Sélectionnez un trajet pour voir les détails</p>
       </div>
       <RideCard 
@@ -57,7 +57,9 @@
         :ride="ride"
       >
         <template #actions>
-          <button class="btn-details">Voir les détails</button>
+          <router-link :to="`/ride/${ride.id}`" class="btn-details">
+            Voir les détails
+          </router-link>
         </template>
       </RideCard>
     </div>
@@ -251,6 +253,8 @@ input:focus {
   font-weight: 600;
   transition: background-color 0.3s;
   margin-top: 12px;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .btn-details:hover {
