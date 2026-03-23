@@ -30,6 +30,11 @@ const routes = [
     path: '/ride/:id',
     name: 'ride-detail',
     component: () => import('@/views/RideDetail.vue')
+  },
+  {
+    path: '/my-rides',
+    name: 'my-rides',
+    component: () => import('@/views/MyRides.vue')
   }
 ]
 

@@ -11,6 +11,7 @@
         
         <template v-if="userStore.currentUser">
           <router-link to="/create-ride" class="navbar-link">Publier un trajet</router-link>
+          <router-link to="/my-rides" class="navbar-link">Mes trajets</router-link>
           <span class="user-name">{{ userStore.currentUser.name }}</span>
           <button @click="handleLogout" class="btn-logout">Déconnexion</button>
         </template>

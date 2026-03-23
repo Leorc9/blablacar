@@ -61,6 +61,29 @@ export const useRidesStore = defineStore('rides', () => {
     }
   }
 
+  // Get rides by user ID
+  const getUserRides = async (userId) => {
+    loading.value = true
+    error.value = null
+    try {
+      const q = query(
+        collection(db, 'rides'),
+        where('driverId', '==', userId),
+        orderBy('createdAt', 'desc')
+      )
+      const querySnapshot = await getDocs(q)
+      rides.value = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Get ride by ID
   const getRideById = async (rideId) => {
     loading.value = true
@@ -157,6 +180,7 @@ export const useRidesStore = defineStore('rides', () => {
     error,
     createRide,
     fetchRides,
+    getUserRides,
     getRideById,
     searchRides,
     bookRide,
