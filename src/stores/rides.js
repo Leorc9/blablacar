@@ -25,6 +25,20 @@ export const useRidesStore = defineStore('rides', () => {
   const createRide = async (rideData) => {
     loading.value = true
     error.value = null
+    
+    // Validation
+    if (!rideData.from || !rideData.to) {
+      error.value = 'Les villes de départ et d\'arrivée sont obligatoires'
+      loading.value = false
+      throw new Error(error.value)
+    }
+
+    if (rideData.seats < 1 || rideData.seats > 8) {
+      error.value = 'Le nombre de places doit être entre 1 et 8'
+      loading.value = false
+      throw new Error(error.value)
+    }
+
     try {
       const docRef = await addDoc(collection(db, 'rides'), {
         ...rideData,
@@ -55,6 +69,7 @@ export const useRidesStore = defineStore('rides', () => {
       }))
     } catch (err) {
       error.value = err.message
+      console.error('Error fetching rides:', err)
       throw err
     } finally {
       loading.value = false
@@ -99,7 +114,8 @@ export const useRidesStore = defineStore('rides', () => {
         }
         return currentRide.value
       } else {
-        throw new Error('Ride not found')
+        error.value = 'Trajet introuvable'
+        throw new Error(error.value)
       }
     } catch (err) {
       error.value = err.message
@@ -140,8 +156,23 @@ export const useRidesStore = defineStore('rides', () => {
   const bookRide = async (rideId, userId) => {
     loading.value = true
     error.value = null
+    
     try {
+      // Check if ride exists and has seats
       const rideRef = doc(db, 'rides', rideId)
+      const rideSnap = await getDoc(rideRef)
+      
+      if (!rideSnap.exists()) {
+        error.value = 'Trajet introuvable'
+        throw new Error(error.value)
+      }
+
+      const rideData = rideSnap.data()
+      if (rideData.seats <= 0) {
+        error.value = 'Ce trajet est complet'
+        throw new Error(error.value)
+      }
+
       await updateDoc(rideRef, {
         seats: increment(-1)
       })
