@@ -1,9 +1,20 @@
 <template>
   <div class="ride-detail-page">
-    <LoadingSpinner v-if="ridesStore.loading" message="Chargement..." />
-    
+    <LoadingSpinner
+      v-if="ridesStore.loading"
+      message="Chargement du trajet..."
+    />
+
     <div v-else-if="ride" class="ride-detail-container">
       <h1>Détails du trajet</h1>
+
+      <div v-if="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+
+      <div v-if="ridesStore.error" class="error-message">
+        {{ ridesStore.error }}
+      </div>
 
       <div class="ride-main-info">
         <div class="route">
@@ -39,7 +50,7 @@
 
         <div class="info-card">
           <strong>👥 Places</strong>
-          <p>{{ ride.seats }} disponibles</p>
+          <p>{{ ride.seats }} disponible{{ ride.seats > 1 ? "s" : "" }}</p>
         </div>
       </div>
 
@@ -54,82 +65,130 @@
       </div>
 
       <div class="actions">
-        <button 
-          @click="handleBooking" 
+        <button
+          @click="handleBooking"
           class="btn-book"
-          :disabled="ride.seats === 0 || bookingInProgress"
+          :disabled="ride.seats === 0 || bookingInProgress || isMyRide"
         >
-          {{ bookingInProgress ? 'Réservation...' : ride.seats === 0 ? 'Complet' : 'Réserver ce trajet' }}
+          {{ getBookingButtonText() }}
         </button>
         <button @click="goBack" class="btn-secondary">Retour</button>
       </div>
     </div>
 
-    <div v-else class="error-message">
+    <div v-else class="error-container">
       <p>Trajet introuvable</p>
+      <button @click="goBack" class="btn-primary">Retour à la recherche</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useRidesStore } from '@/stores/rides'
-import { useUserStore } from '@/stores/user'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import { ref, onMounted, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useRidesStore } from "@/stores/rides";
+import { useUserStore } from "@/stores/user";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
-const route = useRoute()
-const router = useRouter()
-const ridesStore = useRidesStore()
-const userStore = useUserStore()
-const ride = ref(null)
-const bookingInProgress = ref(false)
+const route = useRoute();
+const router = useRouter();
+const ridesStore = useRidesStore();
+const userStore = useUserStore();
+const ride = ref(null);
+const bookingInProgress = ref(false);
+const successMessage = ref("");
+
+const isMyRide = computed(() => {
+  return (
+    ride.value &&
+    userStore.currentUser &&
+    ride.value.driverId === userStore.currentUser.uid
+  );
+});
 
 const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
+  const date = new Date(dateString);
+  return date.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+const getBookingButtonText = () => {
+  if (bookingInProgress.value) return "Réservation...";
+  if (isMyRide.value) return "Votre trajet";
+  if (ride.value.seats === 0) return "❌ Complet";
+  return "✅ Réserver ce trajet";
+};
 
 const handleBooking = async () => {
   if (!userStore.currentUser) {
-    alert('Vous devez être connecté pour réserver')
-    router.push('/login')
-    return
+    if (
+      confirm(
+        "Vous devez être connecté pour réserver.\n\nSouhaitez-vous vous connecter maintenant ?",
+      )
+    ) {
+      router.push("/login");
+    }
+    return;
+  }
+
+  if (isMyRide.value) {
+    alert("ℹ️ Vous ne pouvez pas réserver votre propre trajet.");
+    return;
   }
 
   if (ride.value.seats === 0) {
-    alert('Ce trajet est complet')
-    return
+    alert("❌ Désolé, ce trajet est complet.");
+    return;
   }
 
-  bookingInProgress.value = true
+  const confirmed = confirm(
+    `🎫 Confirmer la réservation ?\n\n` +
+      `📍 Trajet : ${ride.value.from} → ${ride.value.to}\n` +
+      `📅 Date : ${formatDate(ride.value.date)}\n` +
+      `🕐 Heure : ${ride.value.time}\n` +
+      `💰 Prix : ${ride.value.price}€\n\n` +
+      `Confirmez-vous cette réservation ?`,
+  );
+
+  if (!confirmed) return;
+
+  bookingInProgress.value = true;
   try {
-    await ridesStore.bookRide(ride.value.id, userStore.currentUser.uid)
-    alert('Réservation confirmée !')
+    await ridesStore.bookRide(ride.value.id, userStore.currentUser.uid);
+    successMessage.value = "✅ Réservation confirmée ! Bon voyage !";
+
     // Refresh ride data
-    ride.value = await ridesStore.getRideById(ride.value.id)
+    ride.value = await ridesStore.getRideById(ride.value.id);
+
+    // Clear success message after 5 seconds
+    setTimeout(() => {
+      successMessage.value = "";
+    }, 5000);
   } catch (err) {
-    console.error('Booking error:', err)
-    alert('Erreur lors de la réservation')
+    console.error("Booking error:", err);
+    alert(`❌ Erreur lors de la réservation :\n${err.message}`);
   } finally {
-    bookingInProgress.value = false
+    bookingInProgress.value = false;
   }
-}
+};
 
 const goBack = () => {
-  router.back()
-}
+  router.back();
+};
 
 onMounted(async () => {
-  const rideId = route.params.id
-  const fetchedRide = await ridesStore.getRideById(rideId)
-  ride.value = fetchedRide
-})
+  const rideId = route.params.id;
+  try {
+    const fetchedRide = await ridesStore.getRideById(rideId);
+    ride.value = fetchedRide;
+  } catch (err) {
+    console.error("Error loading ride:", err);
+  }
+});
 </script>
 
 <style scoped>
@@ -137,6 +196,27 @@ onMounted(async () => {
   max-width: 900px;
   margin: 0 auto;
   padding: 40px 20px;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #c3e6cb;
+  font-weight: 600;
+  text-align: center;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #f5c6cb;
+  text-align: center;
 }
 
 .ride-detail-container {
@@ -319,11 +399,33 @@ h1 {
   background-color: #e0e0e0;
 }
 
-.error-message {
+.error-container {
   text-align: center;
-  padding: 60px;
+  padding: 80px 20px;
   background: white;
   border-radius: 12px;
+}
+
+.error-container p {
+  font-size: 1.3rem;
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.btn-primary {
+  background-color: #00aff5;
+  color: white;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #0099dd;
 }
 
 @media (max-width: 768px) {
