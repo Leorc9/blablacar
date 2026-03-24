@@ -1,45 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Home from '@/views/Home.vue'
+import Login from '@/views/Login.vue'
+import Register from '@/views/Register.vue'
+import CreateRide from '@/views/CreateRide.vue'
+import SearchRides from '@/views/SearchRides.vue'
+import RideDetail from '@/views/RideDetail.vue'
+import MyRides from '@/views/MyRides.vue'
+import Profile from '@/views/Profile.vue'
 
 const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: () => import('@/views/Home.vue')
-  },
-  {
-    path: '/login',
-    name: 'login',
-    component: () => import('@/views/Login.vue')
-  },
-  {
-    path: '/register',
-    name: 'register',
-    component: () => import('@/views/Register.vue')
-  },
-  {
-    path: '/create-ride',
-    name: 'create-ride',
-    component: () => import('@/views/CreateRide.vue')
-  },
-  {
-    path: '/search-rides',
-    name: 'search-rides',
-    component: () => import('@/views/SearchRides.vue')
-  },
-  {
-    path: '/ride/:id',
-    name: 'ride-detail',
-    component: () => import('@/views/RideDetail.vue')
-  },
-  {
-    path: '/my-rides',
-    name: 'my-rides',
-    component: () => import('@/views/MyRides.vue')
-  }
+  { path: '/', component: Home },
+  { path: '/login', component: Login },
+  { path: '/register', component: Register },
+  { path: '/create-ride', component: CreateRide },
+  { path: '/search-rides', component: SearchRides },
+  { path: '/ride/:id', component: RideDetail },
+  { path: '/my-rides', component: MyRides },
+  { path: '/profile', component: Profile }
 ]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(),
   routes
 })
 
