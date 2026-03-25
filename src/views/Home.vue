@@ -1,36 +1,79 @@
 <template>
-  <div class="home">
-    <div class="hero">
-      <h1>Voyagez moins cher avec BlaBlaCar</h1>
-      <p>Trouvez des trajets en covoiturage partout en France</p>
-      
-      <div v-if="!userStore.currentUser" class="cta-buttons">
-        <router-link to="/register" class="btn btn-primary">S'inscrire</router-link>
-        <router-link to="/login" class="btn btn-secondary">Se connecter</router-link>
-      </div>
-      
-      <div v-else class="welcome-message">
-        <h2>Bonjour {{ userStore.currentUser.name }} !</h2>
-        <p>Prêt à partir en voyage ?</p>
-      </div>
-    </div>
+  <div class="home-page gradient-bg">
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">
+            Voyagez ensemble,<br>
+            <span class="text-primary">économisez plus</span>
+          </h1>
+          <p class="hero-subtitle">
+            La plateforme de covoiturage qui connecte conducteurs et passagers pour des trajets économiques et écologiques
+          </p>
+          <div class="hero-actions">
+            <router-link to="/search-rides" class="btn btn-primary btn-lg">
+              Rechercher un trajet
+            </router-link>
+            <router-link to="/create-ride" class="btn btn-secondary btn-lg">
+              + Proposer un trajet
+            </router-link>
+          </div>
+        </div>
 
-    <div class="features">
-      <div class="feature-card">
-        <h3>Trouvez un trajet</h3>
-        <p>Des milliers de trajets disponibles chaque jour</p>
+        <div class="hero-image">
+          <div class="car-icon">🚗</div>
+        </div>
       </div>
-      
-      <div class="feature-card">
-        <h3>Économisez</h3>
-        <p>Partagez les frais de route avec d'autres voyageurs</p>
+    </section>
+
+    <section class="features">
+      <div class="container">
+        <h2 class="text-center mb-xl">Pourquoi choisir BlaBlaCar ?</h2>
+        
+        <div class="features-grid">
+          <div class="feature-card card">
+            <div class="feature-icon"></div>
+            <h3>Économique</h3>
+            <p>Partagez les frais de route et réduisez vos dépenses de transport</p>
+          </div>
+
+          <div class="feature-card card">
+            <div class="feature-icon"></div>
+            <h3>Écologique</h3>
+            <p>Réduisez votre empreinte carbone en partageant votre véhicule</p>
+          </div>
+
+          <div class="feature-card card">
+            <div class="feature-icon"></div>
+            <h3>Convivial</h3>
+            <p>Rencontrez de nouvelles personnes et voyagez ensemble</p>
+          </div>
+
+          <div class="feature-card card">
+            <div class="feature-icon"></div>
+            <h3>Simple</h3>
+            <p>Trouvez ou proposez un trajet en quelques clics</p>
+          </div>
+        </div>
       </div>
-      
-      <div class="feature-card">
-        <h3>Écologique</h3>
-        <p>Réduisez votre empreinte carbone</p>
+    </section>
+
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-card card gradient-primary">
+          <h2>Prêt à partir ?</h2>
+          <p>Rejoignez des milliers de covoitureurs et commencez à voyager autrement</p>
+          <div class="cta-buttons">
+            <router-link v-if="!userStore.currentUser" to="/register" class="btn btn-light btn-lg">
+              S'inscrire gratuitement
+            </router-link>
+            <router-link v-else to="/search-rides" class="btn btn-light btn-lg">
+              Explorer les trajets
+            </router-link>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -41,95 +84,160 @@ const userStore = useUserStore()
 </script>
 
 <style scoped>
-.home {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
+.home-page {
+  min-height: 100vh;
 }
 
 .hero {
+  padding: var(--spacing-3xl) 0;
+}
+
+.hero .container {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--spacing-2xl);
+  align-items: center;
+}
+
+.hero-title {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-2xl);
+  line-height: 1.6;
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.btn-lg {
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  font-size: var(--font-size-lg);
+}
+
+.hero-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.car-icon {
+  font-size: 15rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.features {
+  padding: var(--spacing-3xl) 0;
+  background: var(--bg-primary);
+}
+
+.features h2 {
+  font-size: var(--font-size-3xl);
+  color: var(--text-primary);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-xl);
+}
+
+.feature-card {
   text-align: center;
-  padding: 60px 20px;
-  background: linear-gradient(135deg, #00aff5 0%, #0099dd 100%);
-  border-radius: 12px;
-  color: white;
-  margin-bottom: 60px;
+  padding: var(--spacing-2xl);
 }
 
-.hero h1 {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
+.feature-icon {
+  font-size: 4rem;
+  margin-bottom: var(--spacing-lg);
 }
 
-.hero p {
-  font-size: 1.2rem;
-  margin-bottom: 30px;
+.feature-card h3 {
+  color: var(--primary);
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-md);
+}
+
+.feature-card p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.cta-section {
+  padding: var(--spacing-3xl) 0;
+}
+
+.cta-card {
+  text-align: center;
+  padding: var(--spacing-3xl);
+}
+
+.cta-card h2 {
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-md);
+}
+
+.cta-card p {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-2xl);
+  opacity: 0.95;
 }
 
 .cta-buttons {
   display: flex;
-  gap: 20px;
   justify-content: center;
-  flex-wrap: wrap;
+  gap: var(--spacing-md);
 }
 
-.btn {
-  padding: 12px 32px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1.1rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.btn-primary {
-  background-color: white;
-  color: #00aff5;
-}
-
-.btn-secondary {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid white;
-}
-
-.welcome-message {
-  padding: 20px;
-}
-
-.welcome-message h2 {
-  font-size: 2rem;
-  margin-bottom: 10px;
-}
-
-.features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-  padding: 20px 0;
-}
-
-.feature-card {
+.btn-light {
   background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  color: var(--primary);
 }
 
-.feature-card h3 {
-  color: #00aff5;
-  font-size: 1.5rem;
-  margin-bottom: 15px;
+.btn-light:hover {
+  background: var(--bg-secondary);
+  transform: translateY(-2px);
 }
 
-.feature-card p {
-  color: #666;
-  line-height: 1.6;
+@media (max-width: 968px) {
+  .hero .container {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-title {
+    font-size: var(--font-size-3xl);
+  }
+
+  .car-icon {
+    font-size: 8rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 </style>

@@ -1,164 +1,137 @@
 <template>
-  <div class="login-page">
+  <div class="login-page gradient-bg">
     <div class="login-container">
-      <h1>Connexion</h1>
+      <div class="card">
+        <div class="card-header text-center">
+          <div class="login-icon">🔐</div>
+          <h1>Connexion</h1>
+          <p class="text-secondary">Bienvenue ! Connectez-vous à votre compte</p>
+        </div>
 
-      <div v-if="userStore.error" class="error-message">
-        {{ userStore.error }}
+        <div v-if="userStore.error" class="alert alert-danger">
+          {{ userStore.error }}
+        </div>
+
+        <form @submit.prevent="handleLogin" class="login-form">
+          <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input 
+              type="email" 
+              id="email" 
+              v-model="email" 
+              required 
+              placeholder="votre@email.com"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">Mot de passe</label>
+            <input 
+              type="password" 
+              id="password" 
+              v-model="password" 
+              required 
+              placeholder="••••••••"
+              class="form-input"
+            />
+          </div>
+
+          <button 
+            type="submit" 
+            class="btn btn-primary btn-full"
+            :disabled="userStore.loading"
+          >
+            {{ userStore.loading ? '⏳ Connexion...' : '✅ Se connecter' }}
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <p class="text-secondary">
+            Pas encore de compte ? 
+            <router-link to="/register" class="link-primary">
+              Inscrivez-vous
+            </router-link>
+          </p>
+        </div>
       </div>
-
-      <form @submit.prevent="handleLogin" class="login-form">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            v-model="email"
-            required
-            placeholder="votre@email.com"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="password">Mot de passe</label>
-          <input
-            type="password"
-            id="password"
-            v-model="password"
-            required
-            placeholder="••••••••"
-          />
-        </div>
-
-        <button type="submit" class="btn-primary" :disabled="userStore.loading">
-          {{ userStore.loading ? "Connexion..." : "Se connecter" }}
-        </button>
-      </form>
-
-      <p class="register-link">
-        Pas encore de compte ?
-        <router-link to="/register">S'inscrire</router-link>
-      </p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { useUserStore } from "@/stores/user";
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 
-const router = useRouter();
-const userStore = useUserStore();
-const email = ref("");
-const password = ref("");
+const router = useRouter()
+const userStore = useUserStore()
+
+const email = ref('')
+const password = ref('')
 
 const handleLogin = async () => {
   try {
-    await userStore.login(email.value, password.value);
-    router.push("/");
+    await userStore.login(email.value, password.value)
+    router.push('/')
   } catch (err) {
-    console.error("Login error:", err);
+    console.error('Login error:', err)
   }
-};
+}
 </script>
 
 <style scoped>
 .login-page {
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 100px);
-  padding: 20px;
+  justify-content: center;
+  padding: var(--spacing-lg);
 }
 
 .login-container {
-  background: white;
-  padding: 40px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 480px;
 }
 
-h1 {
-  color: #00aff5;
-  margin-bottom: 30px;
-  text-align: center;
+.login-icon {
+  font-size: 4rem;
+  margin-bottom: var(--spacing-md);
 }
 
-.error-message {
-  background-color: #fee;
-  color: #c33;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 20px;
-  text-align: center;
+.card-header h1 {
+  color: var(--primary);
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-sm);
 }
 
 .login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  margin-top: var(--spacing-xl);
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.btn-full {
+  width: 100%;
+  padding: var(--spacing-lg);
+  font-size: var(--font-size-lg);
+  margin-top: var(--spacing-md);
 }
 
-label {
-  font-weight: 500;
-  color: #333;
-}
-
-input {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-input:focus {
-  outline: none;
-  border-color: #00aff5;
-}
-
-.btn-primary {
-  background-color: #00aff5;
-  color: white;
-  padding: 12px;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background-color: #0099dd;
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.register-link {
+.login-footer {
+  margin-top: var(--spacing-xl);
   text-align: center;
-  margin-top: 20px;
-  color: #666;
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-light);
 }
 
-.register-link a {
-  color: #00aff5;
+.link-primary {
+  color: var(--primary);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
+  transition: var(--transition-base);
 }
 
-.register-link a:hover {
+.link-primary:hover {
+  color: var(--primary-dark);
   text-decoration: underline;
 }
 </style>
