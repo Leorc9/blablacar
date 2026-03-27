@@ -18,6 +18,7 @@ import {
 export const useRidesStore = defineStore('rides', () => {
   const rides = ref([])
   const currentRide = ref(null)
+  const bookedRides = ref([])
   const loading = ref(false)
   const error = ref(null)
 
@@ -26,7 +27,6 @@ export const useRidesStore = defineStore('rides', () => {
     loading.value = true
     error.value = null
     
-    // Validation
     if (!rideData.from || !rideData.to) {
       error.value = 'Les villes de départ et d\'arrivée sont obligatoires'
       loading.value = false
@@ -152,13 +152,12 @@ export const useRidesStore = defineStore('rides', () => {
     }
   }
 
-  // Book a ride
+  // Book a ride - now creates booking document
   const bookRide = async (rideId, userId) => {
     loading.value = true
     error.value = null
     
     try {
-      // Check if ride exists and has seats
       const rideRef = doc(db, 'rides', rideId)
       const rideSnap = await getDoc(rideRef)
       
@@ -173,6 +172,21 @@ export const useRidesStore = defineStore('rides', () => {
         throw new Error(error.value)
       }
 
+      // Create booking document
+      await addDoc(collection(db, 'bookings'), {
+        rideId,
+        passengerId: userId,
+        driverId: rideData.driverId,
+        from: rideData.from,
+        to: rideData.to,
+        date: rideData.date,
+        time: rideData.time,
+        price: rideData.price,
+        status: 'confirmed',
+        bookedAt: new Date().toISOString()
+      })
+
+      // Decrement seats
       await updateDoc(rideRef, {
         seats: increment(-1)
       })
@@ -181,6 +195,29 @@ export const useRidesStore = defineStore('rides', () => {
       if (currentRide.value && currentRide.value.id === rideId) {
         currentRide.value.seats -= 1
       }
+    } catch (err) {
+      error.value = err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Fetch user's booked rides
+  const fetchBookedRides = async (userId) => {
+    loading.value = true
+    error.value = null
+    try {
+      const q = query(
+        collection(db, 'bookings'),
+        where('passengerId', '==', userId),
+        orderBy('bookedAt', 'desc')
+      )
+      const querySnapshot = await getDocs(q)
+      bookedRides.value = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }))
     } catch (err) {
       error.value = err.message
       throw err
@@ -207,6 +244,7 @@ export const useRidesStore = defineStore('rides', () => {
   return {
     rides,
     currentRide,
+    bookedRides,
     loading,
     error,
     createRide,
@@ -215,6 +253,7 @@ export const useRidesStore = defineStore('rides', () => {
     getRideById,
     searchRides,
     bookRide,
+    fetchBookedRides,
     deleteRide
   }
 })
