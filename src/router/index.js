@@ -7,6 +7,7 @@ import CreateRide from '@/views/CreateRide.vue'
 import SearchRides from '@/views/SearchRides.vue'
 import RideDetail from '@/views/RideDetail.vue'
 import MyRides from '@/views/MyRides.vue'
+import BookedRides from '@/views/BookedRides.vue'
 import Profile from '@/views/Profile.vue'
 
 const routes = [
@@ -38,6 +39,11 @@ const routes = [
   { 
     path: '/my-rides', 
     component: MyRides,
+    meta: { requiresAuth: true }
+  },
+  { 
+    path: '/booked-rides', 
+    component: BookedRides,
     meta: { requiresAuth: true }
   },
   { 

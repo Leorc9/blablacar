@@ -9,9 +9,10 @@
       <div class="nav-links">
         <template v-if="userStore.currentUser">
           <router-link to="/search-rides" class="nav-link">Rechercher</router-link>
-          <router-link to="/create-ride" class="nav-link">Publier un trajet</router-link>
+          <router-link to="/create-ride" class="nav-link">Publier</router-link>
           <router-link to="/my-rides" class="nav-link">Mes trajets</router-link>
-          <router-link to="/profile" class="nav-link">Mon profil</router-link>
+          <router-link to="/booked-rides" class="nav-link">Mes réservations</router-link>
+          <router-link to="/profile" class="nav-link">Profil</router-link>
           <button @click="handleLogout" class="btn-logout">Déconnexion</button>
         </template>
         <template v-else>
