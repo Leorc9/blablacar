@@ -22,24 +22,33 @@ export const useRidesStore = defineStore('rides', () => {
   const loading = ref(false)
   const error = ref(null)
 
+  // Helper: Validate ride data
+  const validateRideData = (rideData) => {
+    if (!rideData.from || !rideData.to) {
+      throw new Error('Les villes de départ et d\'arrivée sont obligatoires')
+    }
+    if (rideData.from === rideData.to) {
+      throw new Error('La ville de départ et d\'arrivée doivent être différentes')
+    }
+    if (rideData.seats < 1 || rideData.seats > 8) {
+      throw new Error('Le nombre de places doit être entre 1 et 8')
+    }
+    if (rideData.price < 1) {
+      throw new Error('Le prix doit être d\'au moins 1€')
+    }
+    if (!rideData.date || !rideData.time) {
+      throw new Error('La date et l\'heure sont obligatoires')
+    }
+  }
+
   // Create ride
   const createRide = async (rideData) => {
     loading.value = true
     error.value = null
     
-    if (!rideData.from || !rideData.to) {
-      error.value = 'Les villes de départ et d\'arrivée sont obligatoires'
-      loading.value = false
-      throw new Error(error.value)
-    }
-
-    if (rideData.seats < 1 || rideData.seats > 8) {
-      error.value = 'Le nombre de places doit être entre 1 et 8'
-      loading.value = false
-      throw new Error(error.value)
-    }
-
     try {
+      validateRideData(rideData)
+      
       const docRef = await addDoc(collection(db, 'rides'), {
         ...rideData,
         createdAt: new Date().toISOString()
@@ -68,7 +77,7 @@ export const useRidesStore = defineStore('rides', () => {
         ...doc.data()
       }))
     } catch (err) {
-      error.value = err.message
+      error.value = 'Erreur lors du chargement des trajets'
       console.error('Error fetching rides:', err)
       throw err
     } finally {
@@ -78,6 +87,10 @@ export const useRidesStore = defineStore('rides', () => {
 
   // Get rides by user ID
   const getUserRides = async (userId) => {
+    if (!userId) {
+      throw new Error('ID utilisateur requis')
+    }
+    
     loading.value = true
     error.value = null
     try {
@@ -92,7 +105,7 @@ export const useRidesStore = defineStore('rides', () => {
         ...doc.data()
       }))
     } catch (err) {
-      error.value = err.message
+      error.value = 'Erreur lors du chargement de vos trajets'
       throw err
     } finally {
       loading.value = false
@@ -101,6 +114,10 @@ export const useRidesStore = defineStore('rides', () => {
 
   // Get ride by ID
   const getRideById = async (rideId) => {
+    if (!rideId) {
+      throw new Error('ID du trajet requis')
+    }
+    
     loading.value = true
     error.value = null
     try {
@@ -118,7 +135,7 @@ export const useRidesStore = defineStore('rides', () => {
         throw new Error(error.value)
       }
     } catch (err) {
-      error.value = err.message
+      error.value = err.message || 'Erreur lors du chargement du trajet'
       throw err
     } finally {
       loading.value = false
@@ -144,16 +161,24 @@ export const useRidesStore = defineStore('rides', () => {
         id: doc.id,
         ...doc.data()
       }))
+      
+      if (rides.value.length === 0 && (from || to)) {
+        error.value = 'Aucun trajet trouvé pour cette recherche'
+      }
     } catch (err) {
-      error.value = err.message
+      error.value = 'Erreur lors de la recherche'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  // Book a ride - now creates booking document
+  // Book a ride
   const bookRide = async (rideId, userId) => {
+    if (!rideId || !userId) {
+      throw new Error('Informations manquantes')
+    }
+    
     loading.value = true
     error.value = null
     
@@ -167,8 +192,29 @@ export const useRidesStore = defineStore('rides', () => {
       }
 
       const rideData = rideSnap.data()
+      
+      // Check if user is the driver
+      if (rideData.driverId === userId) {
+        error.value = 'Vous ne pouvez pas réserver votre propre trajet'
+        throw new Error(error.value)
+      }
+      
+      // Check seats availability
       if (rideData.seats <= 0) {
         error.value = 'Ce trajet est complet'
+        throw new Error(error.value)
+      }
+
+      // Check if already booked
+      const bookingsQuery = query(
+        collection(db, 'bookings'),
+        where('rideId', '==', rideId),
+        where('passengerId', '==', userId)
+      )
+      const existingBookings = await getDocs(bookingsQuery)
+      
+      if (!existingBookings.empty) {
+        error.value = 'Vous avez déjà réservé ce trajet'
         throw new Error(error.value)
       }
 
@@ -196,7 +242,7 @@ export const useRidesStore = defineStore('rides', () => {
         currentRide.value.seats -= 1
       }
     } catch (err) {
-      error.value = err.message
+      error.value = err.message || 'Erreur lors de la réservation'
       throw err
     } finally {
       loading.value = false
@@ -205,6 +251,10 @@ export const useRidesStore = defineStore('rides', () => {
 
   // Fetch user's booked rides
   const fetchBookedRides = async (userId) => {
+    if (!userId) {
+      throw new Error('ID utilisateur requis')
+    }
+    
     loading.value = true
     error.value = null
     try {
@@ -219,7 +269,7 @@ export const useRidesStore = defineStore('rides', () => {
         ...doc.data()
       }))
     } catch (err) {
-      error.value = err.message
+      error.value = 'Erreur lors du chargement de vos réservations'
       throw err
     } finally {
       loading.value = false
@@ -228,17 +278,26 @@ export const useRidesStore = defineStore('rides', () => {
 
   // Delete ride
   const deleteRide = async (rideId) => {
+    if (!rideId) {
+      throw new Error('ID du trajet requis')
+    }
+    
     loading.value = true
     error.value = null
     try {
       await deleteDoc(doc(db, 'rides', rideId))
       rides.value = rides.value.filter(ride => ride.id !== rideId)
     } catch (err) {
-      error.value = err.message
+      error.value = 'Erreur lors de la suppression'
       throw err
     } finally {
       loading.value = false
     }
+  }
+
+  // Clear errors
+  const clearError = () => {
+    error.value = null
   }
 
   return {
@@ -254,6 +313,7 @@ export const useRidesStore = defineStore('rides', () => {
     searchRides,
     bookRide,
     fetchBookedRides,
-    deleteRide
+    deleteRide,
+    clearError
   }
 })
