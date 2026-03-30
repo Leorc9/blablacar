@@ -1,65 +1,33 @@
 <template>
-  <div class="search-rides-page">
-    <div class="search-container">
+  <div class="search-page">
+    <section class="search-header card">
       <h1>Rechercher un trajet</h1>
+      <p>Trouvez rapidement un covoiturage adapté à votre itinéraire.</p>
 
-      <form @submit.prevent="handleSearch" class="search-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="from">🚩 Départ</label>
-            <input 
-              type="text" 
-              id="from" 
-              v-model="searchForm.from" 
-              placeholder="Ville de départ"
-            />
-          </div>
+      <RideFilters
+        :initial-from="search.from"
+        :initial-to="search.to"
+        :loading="ridesStore.loading"
+        @search="handleSearch"
+        @reset="handleReset"
+      />
+    </section>
 
-          <div class="form-group">
-            <label for="to">📍 Arrivée</label>
-            <input 
-              type="text" 
-              id="to" 
-              v-model="searchForm.to" 
-              placeholder="Ville d'arrivée"
-            />
-          </div>
-        </div>
+    <p v-if="ridesStore.error" class="feedback error">{{ ridesStore.error }}</p>
 
-        <button type="submit" class="btn-primary" :disabled="ridesStore.loading">
-          🔍 {{ ridesStore.loading ? 'Recherche...' : 'Rechercher' }}
-        </button>
-      </form>
+    <div v-if="ridesStore.loading" class="state-card card">Chargement des trajets...</div>
+    <div v-else-if="searched && ridesStore.rides.length === 0" class="state-card card">
+      Aucun trajet trouvé pour cette recherche.
+    </div>
 
-      <div class="search-tips">
-        <p>💡 Astuce : Laissez un champ vide pour voir tous les trajets disponibles</p>
+    <div v-else class="results">
+      <div class="results-meta" v-if="ridesStore.rides.length">
+        {{ ridesStore.rides.length }} résultat(s)
       </div>
-    </div>
 
-    <div v-if="ridesStore.loading" class="loading">
-      <LoadingSpinner message="Recherche en cours..." />
-    </div>
-
-    <div v-else-if="ridesStore.rides.length === 0 && searched" class="no-results">
-      <div class="no-results-icon">😕</div>
-      <p>Aucun trajet trouvé pour cette recherche.</p>
-      <p class="suggestion">Essayez d'élargir votre recherche ou vérifiez l'orthographe des villes.</p>
-    </div>
-
-    <div v-else-if="ridesStore.rides.length > 0" class="rides-list">
-      <div class="results-header">
-        <h2>✨ {{ ridesStore.rides.length }} trajet(s) trouvé(s)</h2>
-        <p>Sélectionnez un trajet pour voir les détails</p>
-      </div>
-      <RideCard 
-        v-for="ride in ridesStore.rides" 
-        :key="ride.id" 
-        :ride="ride"
-      >
+      <RideCard v-for="ride in ridesStore.rides" :key="ride.id" :ride="ride">
         <template #actions>
-          <router-link :to="`/ride/${ride.id}`" class="btn-details">
-            Voir les détails
-          </router-link>
+          <router-link :to="`/ride/${ride.id}`" class="btn-details">Voir le détail</router-link>
         </template>
       </RideCard>
     </div>
@@ -67,207 +35,117 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRidesStore } from '@/stores/rides'
+import { onMounted, ref } from 'vue'
 import RideCard from '@/components/RideCard.vue'
-import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import RideFilters from '@/components/RideFilters.vue'
+import { useRidesStore } from '@/stores/rides'
 
 const ridesStore = useRidesStore()
 const searched = ref(false)
 
-const searchForm = ref({
+const search = ref({
   from: '',
   to: ''
 })
 
-const handleSearch = async () => {
+const handleSearch = async (payload) => {
   searched.value = true
-  if (searchForm.value.from || searchForm.value.to) {
-    await ridesStore.searchRides(searchForm.value.from, searchForm.value.to)
-  } else {
+  search.value = payload
+
+  if (!payload.from && !payload.to) {
     await ridesStore.fetchRides()
+    return
   }
+
+  await ridesStore.searchRides(payload.from, payload.to)
 }
 
-onMounted(() => {
-  ridesStore.fetchRides()
-  searched.value = true
+const handleReset = async () => {
+  searched.value = false
+  search.value = { from: '', to: '' }
+  ridesStore.clearError()
+  await ridesStore.fetchRides()
+}
+
+onMounted(async () => {
+  await ridesStore.fetchRides()
 })
 </script>
 
 <style scoped>
-.search-rides-page {
-  max-width: 1000px;
+.search-page {
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 32px 20px;
 }
 
-.search-container {
-  background: linear-gradient(135deg, #00aff5 0%, #0099dd 100%);
-  padding: 40px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 175, 245, 0.2);
-  margin-bottom: 40px;
-  color: white;
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
 }
 
-h1 {
-  color: white;
-  margin-bottom: 30px;
-  text-align: center;
-  font-size: 2rem;
-}
-
-.search-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-row {
+.search-header {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 12px;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.search-header h1 {
+  color: #0f172a;
+  font-size: clamp(1.6rem, 2.8vw, 2.1rem);
 }
 
-label {
+.search-header p {
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.feedback {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.results {
+  margin-top: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.results-meta {
+  color: #334155;
   font-weight: 600;
-  color: white;
-  font-size: 1.1rem;
+  margin: 2px 2px 6px;
 }
 
-input {
-  padding: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  font-size: 16px;
-  background: rgba(255, 255, 255, 0.95);
+.state-card {
+  margin-top: 16px;
+  color: #334155;
 }
 
-input:focus {
-  outline: none;
-  border-color: white;
-  background: white;
-}
-
-.btn-primary {
-  background-color: white;
-  color: #00aff5;
-  padding: 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.btn-primary:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.search-tips {
-  margin-top: 20px;
-  text-align: center;
-  opacity: 0.9;
-}
-
-.search-tips p {
-  font-size: 0.95rem;
-}
-
-.loading {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.no-results {
-  text-align: center;
-  padding: 80px 20px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.no-results-icon {
-  font-size: 4rem;
-  margin-bottom: 20px;
-}
-
-.no-results p {
-  color: #333;
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-}
-
-.suggestion {
-  color: #666;
-  font-size: 1rem;
-}
-
-.rides-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.results-header {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 10px;
-}
-
-.results-header h2 {
-  color: #00aff5;
-  margin-bottom: 5px;
-  font-size: 1.5rem;
-}
-
-.results-header p {
-  color: #666;
-  font-size: 0.95rem;
+.error {
+  color: #c62828;
+  background: #fdecea;
+  border: 1px solid #f5c2c7;
 }
 
 .btn-details {
-  background-color: #00aff5;
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.3s;
-  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #00aff5 0%, #0099dd 100%);
+  color: #fff;
   text-decoration: none;
-  display: inline-block;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-details:hover {
-  background-color: #0099dd;
-}
-
-@media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  h1 {
-    font-size: 1.5rem;
-  }
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 175, 245, 0.25);
 }
 </style>
