@@ -3,7 +3,7 @@
     <div class="register-container">
       <div class="card">
         <div class="card-header text-center">
-          <div class="register-icon">✨</div>
+          <div class="register-icon" aria-hidden="true">B</div>
           <h1>Inscription</h1>
           <p class="text-secondary">
             Créez votre compte et commencez à voyager
@@ -16,7 +16,7 @@
 
         <form @submit.prevent="handleRegister" class="register-form">
           <div class="form-group">
-            <label for="name" class="form-label">👤 Nom complet</label>
+            <label for="name" class="form-label">Nom complet</label>
             <input
               type="text"
               id="name"
@@ -28,7 +28,7 @@
           </div>
 
           <div class="form-group">
-            <label for="email" class="form-label">📧 Email</label>
+            <label for="email" class="form-label">Email</label>
             <input
               type="email"
               id="email"
@@ -40,7 +40,7 @@
           </div>
 
           <div class="form-group">
-            <label for="password" class="form-label">🔒 Mot de passe</label>
+            <label for="password" class="form-label">Mot de passe</label>
             <input
               type="password"
               id="password"
@@ -54,9 +54,7 @@
           </div>
 
           <div class="form-group">
-            <label for="confirmPassword" class="form-label"
-              >🔒 Confirmer le mot de passe</label
-            >
+            <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
             <input
               type="password"
               id="confirmPassword"
@@ -72,7 +70,7 @@
             class="btn btn-primary btn-full"
             :disabled="userStore.loading"
           >
-            {{ userStore.loading ? "⏳ Inscription..." : "✨ S'inscrire" }}
+            {{ userStore.loading ? "Inscription..." : "S'inscrire" }}
           </button>
         </form>
 
@@ -104,18 +102,18 @@ const confirmPassword = ref("");
 
 const handleRegister = async () => {
   if (password.value !== confirmPassword.value) {
-    alert("⚠️ Les mots de passe ne correspondent pas");
+    alert("Les mots de passe ne correspondent pas");
     return;
   }
 
   if (password.value.length < 6) {
-    alert("⚠️ Le mot de passe doit contenir au moins 6 caractères");
+    alert("Le mot de passe doit contenir au moins 6 caractères");
     return;
   }
 
   try {
     await userStore.register(name.value, email.value, password.value);
-    alert("✅ Inscription réussie ! Bienvenue sur BlaBlaCar");
+    alert("Inscription réussie. Bienvenue sur BlaBlaCar.");
     router.push("/");
   } catch (err) {
     console.error("Register error:", err);
@@ -138,7 +136,17 @@ const handleRegister = async () => {
 }
 
 .register-icon {
-  font-size: 4rem;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--spacing-md);
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.4rem;
   margin-bottom: var(--spacing-md);
 }
 

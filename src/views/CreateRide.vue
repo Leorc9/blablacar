@@ -86,7 +86,7 @@
 
         <div class="form-actions">
           <button type="submit" class="btn-primary" :disabled="ridesStore.loading">
-            {{ ridesStore.loading ? '⏳ Publication...' : '✅ Publier le trajet' }}
+            {{ ridesStore.loading ? 'Publication...' : 'Publier le trajet' }}
           </button>
           <button type="button" @click="goBack" class="btn-secondary">
             Annuler
@@ -123,21 +123,21 @@ const minDate = computed(() => {
 const handleSubmit = async () => {
   // Client-side validation
   if (formData.value.seats < 1 || formData.value.seats > 8) {
-    alert('⚠️ Le nombre de places doit être entre 1 et 8')
+    alert('Le nombre de places doit être entre 1 et 8')
     return
   }
 
   if (formData.value.price < 1) {
-    alert('⚠️ Le prix doit être d\'au moins 1€')
+    alert('Le prix doit être d\'au moins 1€')
     return
   }
 
   const confirmed = confirm(
-    `📢 Publier ce trajet ?\n\n` +
-    `📍 ${formData.value.from} → ${formData.value.to}\n` +
-    `📅 ${formData.value.date} à ${formData.value.time}\n` +
-    `👥 ${formData.value.seats} place(s)\n` +
-    `💰 ${formData.value.price}€ par personne\n\n` +
+    `Publier ce trajet ?\n\n` +
+    `Trajet : ${formData.value.from} → ${formData.value.to}\n` +
+    `Date : ${formData.value.date} à ${formData.value.time}\n` +
+    `Places : ${formData.value.seats}\n` +
+    `Prix : ${formData.value.price}€ par personne\n\n` +
     `Confirmer la publication ?`
   )
 
@@ -149,16 +149,16 @@ const handleSubmit = async () => {
       driverId: userStore.currentUser.uid,
       driverName: userStore.currentUser.name
     })
-    alert('✅ Trajet publié avec succès !')
+    alert('Trajet publié avec succès.')
     router.push('/my-rides')
   } catch (err) {
     console.error('Error creating ride:', err)
-    alert(`❌ Erreur lors de la publication :\n${ridesStore.error || err.message}`)
+    alert(`Erreur lors de la publication :\n${ridesStore.error || err.message}`)
   }
 }
 
 const goBack = () => {
-  if (confirm('⚠️ Êtes-vous sûr de vouloir annuler ?\n\nLes informations saisies seront perdues.')) {
+  if (confirm('Êtes-vous sûr de vouloir annuler ?\n\nLes informations saisies seront perdues.')) {
     router.back()
   }
 }

@@ -3,7 +3,7 @@
     <div class="login-container">
       <div class="card">
         <div class="card-header text-center">
-          <div class="login-icon">🔐</div>
+          <div class="login-icon" aria-hidden="true">B</div>
           <h1>Connexion</h1>
           <p class="text-secondary">Bienvenue ! Connectez-vous à votre compte</p>
         </div>
@@ -42,7 +42,7 @@
             class="btn btn-primary btn-full"
             :disabled="userStore.loading"
           >
-            {{ userStore.loading ? '⏳ Connexion...' : '✅ Se connecter' }}
+            {{ userStore.loading ? 'Connexion...' : 'Se connecter' }}
           </button>
         </form>
 
@@ -95,7 +95,17 @@ const handleLogin = async () => {
 }
 
 .login-icon {
-  font-size: 4rem;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--spacing-md);
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.4rem;
   margin-bottom: var(--spacing-md);
 }
 

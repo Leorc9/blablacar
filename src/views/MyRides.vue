@@ -14,7 +14,7 @@
     <LoadingSpinner v-if="ridesStore.loading" message="Chargement de vos trajets..." />
 
     <div v-else-if="myRides.length === 0" class="no-rides">
-      <div class="no-rides-icon">🚗</div>
+      <div class="no-rides-icon" aria-hidden="true"></div>
       <h2>Aucun trajet publié</h2>
       <p>Commencez à partager vos trajets et gagnez de l'argent !</p>
       <router-link to="/create-ride" class="btn-primary">
@@ -41,10 +41,10 @@
             <template #actions>
               <div class="ride-actions">
                 <router-link :to="`/ride/${ride.id}`" class="btn-view">
-                  👁️ Voir
+                  Voir
                 </router-link>
                 <button @click="handleDelete(ride.id)" class="btn-delete">
-                  🗑️ Supprimer
+                  Supprimer
                 </button>
               </div>
             </template>
@@ -76,13 +76,13 @@ const totalSeats = computed(() => {
 })
 
 const handleDelete = async (rideId) => {
-  if (confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce trajet ?\n\nCette action est irréversible.')) {
+  if (confirm('Êtes-vous sûr de vouloir supprimer ce trajet ?\n\nCette action est irréversible.')) {
     try {
       await ridesStore.deleteRide(rideId)
-      alert('✅ Trajet supprimé avec succès')
+      alert('Trajet supprimé avec succès.')
     } catch (err) {
       console.error('Delete error:', err)
-      alert('❌ Erreur lors de la suppression')
+      alert('Erreur lors de la suppression.')
     }
   }
 }
@@ -156,7 +156,12 @@ onMounted(() => {
 }
 
 .no-rides-icon {
-  font-size: 5rem;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00aff5 0%, #0099dd 100%);
+  opacity: 0.85;
   margin-bottom: 20px;
 }
 

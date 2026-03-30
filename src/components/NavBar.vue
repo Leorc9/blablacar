@@ -2,7 +2,7 @@
   <nav class="navbar">
     <div class="nav-container">
       <router-link to="/" class="logo">
-        <span class="logo-icon">🚗</span>
+        <span class="logo-icon" aria-hidden="true"></span>
         <span class="logo-text">BlaBlaCar</span>
       </router-link>
 
@@ -71,7 +71,11 @@ const handleLogout = async () => {
 }
 
 .logo-icon {
-  font-size: 28px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00aff5 0%, #0099dd 100%);
+  box-shadow: 0 2px 8px rgba(0, 175, 245, 0.35);
 }
 
 .nav-links {
