@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { db } from '@/firebase/config'
 import { 
   collection, 
@@ -21,6 +21,11 @@ export const useRidesStore = defineStore('rides', () => {
   const bookedRides = ref([])
   const loading = ref(false)
   const error = ref(null)
+
+  const bookedCount = computed(() => bookedRides.value.length)
+  const bookedTotalPrice = computed(() => {
+    return bookedRides.value.reduce((sum, booking) => sum + Number(booking.price || 0), 0)
+  })
 
   // Helper: Validate ride data
   const validateRideData = (rideData) => {
@@ -260,16 +265,19 @@ export const useRidesStore = defineStore('rides', () => {
     try {
       const q = query(
         collection(db, 'bookings'),
-        where('passengerId', '==', userId),
-        orderBy('bookedAt', 'desc')
+        where('passengerId', '==', userId)
       )
       const querySnapshot = await getDocs(q)
       bookedRides.value = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }))
+      })).sort((a, b) => {
+        const da = new Date(a.bookedAt || 0).getTime()
+        const db = new Date(b.bookedAt || 0).getTime()
+        return db - da
+      })
     } catch (err) {
-      error.value = 'Erreur lors du chargement de vos réservations'
+      error.value = err.message || 'Erreur lors du chargement de vos réservations'
       throw err
     } finally {
       loading.value = false
@@ -306,6 +314,8 @@ export const useRidesStore = defineStore('rides', () => {
     bookedRides,
     loading,
     error,
+    bookedCount,
+    bookedTotalPrice,
     createRide,
     fetchRides,
     getUserRides,

@@ -7,11 +7,11 @@
       </div>
 
       <div v-if="successMessage" class="success-message">
-        ✅ {{ successMessage }}
+        {{ successMessage }}
       </div>
 
       <div v-if="userStore.error" class="error-message">
-        ❌ {{ userStore.error }}
+        {{ userStore.error }}
       </div>
 
       <div class="profile-content">
@@ -23,7 +23,7 @@
             <h2>{{ formData.name }}</h2>
             <p class="user-email">{{ userStore.currentUser?.email }}</p>
             <div class="member-badge">
-              <span class="badge-icon">⭐</span>
+              <span class="badge-icon" aria-hidden="true"></span>
               <span>Membre depuis {{ memberSince }}</span>
             </div>
           </div>
@@ -31,16 +31,16 @@
           <div class="stats-section">
             <h3>Statistiques</h3>
             <div class="stat-item">
-              <span class="stat-icon">🚗</span>
+              <span class="stat-icon" aria-hidden="true"></span>
               <div class="stat-info">
-                <span class="stat-value">0</span>
+                <span class="stat-value">{{ publishedCount }}</span>
                 <span class="stat-label">Trajets publiés</span>
               </div>
             </div>
             <div class="stat-item">
-              <span class="stat-icon">🎫</span>
+              <span class="stat-icon" aria-hidden="true"></span>
               <div class="stat-info">
-                <span class="stat-value">0</span>
+                <span class="stat-value">{{ reservationsCount }}</span>
                 <span class="stat-label">Réservations</span>
               </div>
             </div>
@@ -54,7 +54,6 @@
               
               <div class="form-group">
                 <label for="name">
-                  <span class="label-icon">👤</span>
                   Nom complet
                 </label>
                 <input 
@@ -68,7 +67,6 @@
 
               <div class="form-group">
                 <label for="phone">
-                  <span class="label-icon">📱</span>
                   Téléphone
                 </label>
                 <input 
@@ -82,7 +80,6 @@
 
               <div class="form-group">
                 <label for="bio">
-                  <span class="label-icon">✏️</span>
                   Biographie
                 </label>
                 <textarea 
@@ -97,19 +94,19 @@
 
             <div class="form-actions">
               <button type="submit" class="btn-save" :disabled="userStore.loading">
-                <span v-if="userStore.loading">⏳ Enregistrement...</span>
-                <span v-else>💾 Enregistrer les modifications</span>
+                <span v-if="userStore.loading">Enregistrement...</span>
+                <span v-else>Enregistrer les modifications</span>
               </button>
             </div>
           </form>
 
           <div class="danger-zone">
             <div class="danger-header">
-              <h3>⚠️ Zone dangereuse</h3>
+              <h3>Zone sensible</h3>
               <p>Actions irréversibles sur votre compte</p>
             </div>
             <button @click="handleLogout" class="btn-danger">
-              🚪 Déconnexion
+              Déconnexion
             </button>
           </div>
         </div>
@@ -122,10 +119,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { db } from '@/firebase/config'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 
 const router = useRouter()
 const userStore = useUserStore()
 const successMessage = ref('')
+const publishedCount = ref(0)
+const reservationsCount = ref(0)
 
 const formData = ref({
   name: '',
@@ -141,7 +142,7 @@ const memberSince = computed(() => {
 
 const handleSubmit = async () => {
   if (formData.value.bio && formData.value.bio.length > 500) {
-    alert('⚠️ La biographie ne peut pas dépasser 500 caractères')
+    alert('La biographie ne peut pas dépasser 500 caractères')
     return
   }
 
@@ -153,12 +154,12 @@ const handleSubmit = async () => {
     }, 4000)
   } catch (err) {
     console.error('Update error:', err)
-    alert('❌ Erreur lors de la mise à jour du profil')
+    alert('Erreur lors de la mise à jour du profil')
   }
 }
 
 const handleLogout = async () => {
-  if (confirm('🚪 Êtes-vous sûr de vouloir vous déconnecter ?\n\nVous devrez vous reconnecter pour accéder à votre compte.')) {
+  if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?\n\nVous devrez vous reconnecter pour accéder à votre compte.')) {
     try {
       await userStore.logout()
       router.push('/')
@@ -168,13 +169,35 @@ const handleLogout = async () => {
   }
 }
 
-onMounted(() => {
+const loadProfileStats = async () => {
+  const uid = userStore.currentUser?.uid
+  if (!uid) return
+
+  try {
+    const publishedQuery = query(collection(db, 'rides'), where('driverId', '==', uid))
+    const reservationsQuery = query(collection(db, 'bookings'), where('passengerId', '==', uid))
+
+    const [publishedSnap, reservationsSnap] = await Promise.all([
+      getDocs(publishedQuery),
+      getDocs(reservationsQuery)
+    ])
+
+    publishedCount.value = publishedSnap.size
+    reservationsCount.value = reservationsSnap.size
+  } catch (err) {
+    console.error('Stats error:', err)
+  }
+}
+
+onMounted(async () => {
   if (userStore.currentUser) {
     formData.value = {
       name: userStore.currentUser.name || '',
       phone: userStore.currentUser.phone || '',
       bio: userStore.currentUser.bio || ''
     }
+
+    await loadProfileStats()
   }
 })
 </script>
@@ -290,7 +313,10 @@ onMounted(() => {
 }
 
 .badge-icon {
-  font-size: 1.2rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffc107;
 }
 
 .stats-section {
@@ -317,7 +343,10 @@ onMounted(() => {
 }
 
 .stat-icon {
-  font-size: 2rem;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00aff5;
 }
 
 .stat-info {
@@ -364,17 +393,11 @@ onMounted(() => {
 }
 
 label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: block;
   font-weight: 600;
   color: #333;
   margin-bottom: 10px;
   font-size: 1rem;
-}
-
-.label-icon {
-  font-size: 1.2rem;
 }
 
 input,
